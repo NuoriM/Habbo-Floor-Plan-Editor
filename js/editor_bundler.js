@@ -9,6 +9,17 @@ var MousedMap;
 
 //Disable Right Click
 document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('keydown', (event) => {
+	if(event.shiftKey && controls.mode == drawMode.CREATE){
+		controls.mode = drawMode.REMOVE;
+	}
+});
+
+document.addEventListener('keyup', (event) => {
+	if(!event.shiftKey && controls.mode == drawMode.REMOVE){
+		controls.mode = drawMode.CREATE;
+	}
+});
 
 document.addEventListener('mousedown', (event) => {
 	if (event.button == 0) {
