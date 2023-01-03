@@ -1,0 +1,130 @@
+body {
+    user-select: none;
+}
+
+a {
+	color: #FFF;
+}
+
+.app {
+    display: flex;
+	position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.app-controls-sidebar {
+    display: flex;
+    flex: 1 1 auto;
+}
+
+.app-sidebar-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+}
+
+.app-sidebar-row {
+    display: flex;
+    gap: 8px;
+}
+
+.app-load-popup {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
+.app-load-popup-btn-wrapper {
+    display: flex;
+    gap: 8px;
+}
+
+.app-load-popup-btn-wrapper .btn {
+
+}
+
+.app-load-popup-map {
+    display: flex;
+    flex: 1 1 auto;
+}
+
+.app-load-popup-map #import {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    padding: 0;
+    border: none;
+    background: #191919;
+    color: whitesmoke;
+    z-index: 2023;
+}
+
+.app-load-popup-map textarea{
+    resize: none;
+}
+
+.square {
+    position: absolute;
+    filter: hue-rotate(84deg) saturate(4.5);
+    -webkit-user-drag: none;
+}
+
+.app-preview {
+    display: flex;
+    flex: 1 1 auto;
+    position: relative;
+    min-height: 0;
+}
+
+.app-preview #preview {
+    position: absolute;
+}
+
+.app-preview-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
+.app-preview-actions-wrapper {
+    display: flex;
+    flex: 0 1 auto;
+    gap: 8px;
+    -webkit-user-drag: none;
+    user-select: none;
+    z-index: 1;
+}
+
+.scroller {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.scroller-base {
+    overflow: scroll;
+}
+
+::-webkit-scrollbar{
+    width: 8px;
+    height: 8px;
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    background-color: #ffffff27;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.d-none {
+    display: none;
+}
+/* style="position: absolute; top: 0; left: 0; width: 180px; background-color: #000; border-right: 1px solid #EEE; border-bottom: 1px solid #EEE; overflow: hidden;" */

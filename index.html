@@ -1,0 +1,96 @@
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title>Cecer's Heightmap Editor</title>
+	<script src="./js/editor_utils.js"></script>
+	<script src="./js/editor_settings.js"></script>
+	<script src="./js/editor_bundler.js"></script>
+	
+	<link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body style="background-color: #000; color: #FFF; font-family: Verdana; font-size: 8pt;"
+	onload="PrepareBlankMap(5, 5);">
+	<div class="app">
+		<!-- style="position: absolute; top: 20px; left: 200px; background-color: #000;" -->
+		<div id="controls" class="app-controls-sidebar">
+			<div class="app-sidebar-wrapper">
+				<div class="app-sidebar-row">
+					<strong>Cecer's Heightmap Editor</strong>
+				</div>
+				<div class="app-sidebar-row">
+					<small>Fixed By NuoriM & Apparatus</small>
+				</div>
+				<div class="app-sidebar-row">
+					Create Blank Map:
+				</div>
+				<div class="app-sidebar-row">
+					<input type="textbox" id="CBM-X" value="5" style="width: 25px;" />
+					<span>x</span>
+					<input type="textbox" id="CBM-Y"
+						value="5" style="width: 25px;" /> <input type="button"
+						onclick="if(confirm('WARNING: This will erase the current map! Please export it first!\n\nWARNING: Large sizes can freeze your browser while the map is being built!'))PrepareBlankMap(document.getElementById('CBM-X').value, document.getElementById('CBM-Y').value)"
+						value="Create" />
+				</div>
+				
+				<!-- <input id="toggle" type="checkbox" onchange="Mouse = false;" /> Toggle Mode -->
+				<!-- onclick="document.getElementById('controls').style.width = 696 + 'px';" -->
+				<div class="app-sidebar-row">
+					<input id="importbutton" type="button" value="Import" onclick="openImportPopup()"/>
+				</div>
+				<div class="app-sidebar-row">
+					Exported:
+				</div>
+				<div class="app-sidebar-row">
+					<textarea id="export" readonly="readonly" cols="1" rows="1"
+						style="width: 170px; height: 400px; border: solid 1px #FFF; background-color: #000; color: #FFF;"></textarea>
+				</div>
+				<div class="app-sidebar-row">
+					<a href="http://retro.cecer1.com/">More tools</a>
+				</div>
+			</div>
+			<!-- style="position: absolute; top: 4px; left: 205px;" -->
+			<div id="app-load-popup" class="app-load-popup d-none">
+				<div class="app-load-popup-btn-wrapper">
+					<input class="btn" type="button" value="Load"
+						onclick="if(confirm('WARNING: This will erase the current map! Please export it first!\n\nWARNING: Large sizes can freeze your browser while the map is being built!')) ParseMap(); openImportPopup()" />
+					<input class="btn" type="button" value="Cancel"
+						onclick="document.getElementById('controls').style.width = 180 + 'px';" />
+				</div>
+				<div class="app-load-popup-map">
+					<textarea id="import" cols="1" rows="1" placeholder="Place your heightmap here"></textarea>
+				</div>
+			</div>
+			<div class="app-preview">
+				<div class="app-preview-body">
+					<div class="app-preview-actions-wrapper">
+						<button class="btn" onclick="window.controls.mode=drawMode.CREATE; console.log(controls)">
+							<!-- drawMode.CREATE -->
+							<img src="./images/create.png" alt="create tile" />
+						</button>
+						<button class="btn" onclick="window.controls.mode=drawMode.REMOVE; console.log(controls)">
+							<img src="./images/delete.png" alt="delete tile" />
+						</button>
+						<button class="btn">
+							<img src="./images/up.png" alt="tile up" />
+						</button>
+						<button class="btn">
+							<img src="./images/down.png" alt="tile down" />
+						</button>
+					</div>
+					<div class="scroller scroller-base">
+						<div id="preview"></div>
+						<img id="mapimg" style="position: absolute;" src="./images/off.png"
+							alt="" usemap="#map" />
+						<map name="map"></map>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</body>
+
+</html>
