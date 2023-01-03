@@ -6,9 +6,6 @@ var Mouse = false;
 var isMouseDown = false;
 var MouseMode;
 var MousedMap;
-var controls = {
-	mode: drawMode.CREATE,
-}
 
 //Disable Right Click
 document.addEventListener('contextmenu', event => event.preventDefault());
@@ -19,20 +16,6 @@ document.addEventListener('mousedown', (event) => {
 	}
 });
 document.addEventListener('mouseup', () => isMouseDown = false);
-
-//TileClick(X, Y);
-// this.documentElement.addEventListener('mousemove', function(event){
-// 	console.log(event);
-// });
-//window.addEventListener('mousemove', function(e){
-//console.log(e.offsetX,e.offsetY, e);
-//})
-
-// document.addEventListener('mousemove', function(event) {
-// 	if(isMouseDown) {
-// 		console.log(event.target.className);
-// 	}
-// });
 
 function openImportPopup() {
 	var popup = document.querySelector("#app-load-popup");
@@ -46,42 +29,50 @@ function AddTileArea(C, X, Y) {
 	document.getElementsByTagName("map")[0].appendChild(E);
 	E.onmouseover = function () {
 		if (isMouseDown) {
-			TileClick(X, Y);
+			if(controls.tool == drawTools.NONE){
+				TileClick(X, Y);
+			}
 		}
 		TileOver(X, Y);
 	};
 	E.onmouseout = function () { TileOut(X, Y); };
-	E.onclick = function () { TileClick(X, Y); };
-	E.onmousedown = function () { TileClick(X, Y); };
-	// E.addEventListener('mousedown', function(event){
-	// 	TileClick(X, Y);
-	// 	console.log(X, Y, event.target);
-	// 	//window.addEventListener('mousemove', function(e){
-	// 		//console.log(e.offsetX,e.offsetY, e);
-	// 	//})
-	// })
+	E.onclick = function () {
+		if(controls.tool == drawTools.NONE){
+			TileClick(X, Y);
+		}
+	};
+	E.onmousedown = function () { 
+		if(controls.tool == drawTools.NONE){
+			TileClick(X, Y);
+		}
+	};
 }
 
 function PrepareBlankMap(X, Y) {
 	if (!isInt(X) || !isInt(Y)) {
 		alert("Invalid Size");
 		return;
+	}else if(isInt(X) && isInt(Y)){
+		if(X > controls.maxRoomSize ||
+			Y > controls.maxRoomSize){
+				alert("Room Exceeds the Max Size (32x32)");
+				return;
+		}
 	}
 	Map = new Array();
 	MousedMap = new Array();
 	Mouse = false;
 	OffsetX = ((Y * 32) - 7);
-	OffsetY = 100;
+	OffsetY = 25;
 
 	document.getElementsByTagName("map")[0].innerHTML = "";
-
-	for (var x = 0; x < X; x++) {
-		Map[x] = new Array();
+	Map = new Array(parseInt(X), parseInt(Y)).dim();
+	var x = 0,
+		y = 0;
+	while(x < X) {
 		MousedMap[x] = new Array();
-		for (var y = 0; y < Y; y++) {
-			Map[x][y] = true;
-			// var tileOffset = getRandomRange(0, TILEOFFSET.length);
-			// console.log(tileOffset);
+
+		while(y < Y){
 			var _x = ((x * 32) + (y * -32) + OffsetX);
 			var _y = ((x * 16) + (y * 16) + OffsetY);
 
@@ -110,8 +101,50 @@ function PrepareBlankMap(X, Y) {
 			Coords += (_y + 16); // LeftY
 
 			AddTileArea(Coords, x, y); //Altura deve ficar aqui
+
+			y++;
 		}
+		y = 0;
+		x++;
 	}
+
+	// for (var x = 0; x < X; x++) {
+	// 	//Map[x] = new Array();
+	// 	MousedMap[x] = new Array();
+	// 	for (var y = 0; y < Y; y++) {
+	// 		//Map[x][y] = true;
+	// 		// var tileOffset = getRandomRange(0, TILEOFFSET.length);
+	// 		// console.log(tileOffset);
+	// 		var _x = ((x * 32) + (y * -32) + OffsetX);
+	// 		var _y = ((x * 16) + (y * 16) + OffsetY);
+
+	// 		var Coords = "";
+	// 		Coords += (_x + 31); // TopX
+	// 		Coords += ",";
+	// 		Coords += (_y); // TopY
+	// 		Coords += ",";
+
+	// 		Coords += (_x + 63); // RightX
+	// 		Coords += ",";
+	// 		Coords += (_y + 16); // RightY
+	// 		Coords += ",";
+
+	// 		Coords += (_x + 32); // BottomX
+	// 		Coords += ",";
+	// 		Coords += (_y + 31); // BottomY
+	// 		Coords += ",";
+	// 		Coords += (_x + 31); // BottomX
+	// 		Coords += ",";
+	// 		Coords += (_y + 31); // BottomY
+	// 		Coords += ",";
+
+	// 		Coords += (_x + 0); // LeftX
+	// 		Coords += ",";
+	// 		Coords += (_y + 16); // LeftY
+
+	// 		AddTileArea(Coords, x, y); //Altura deve ficar aqui
+	// 	}
+	// }
 	DrawMap();
 	ResetMousedMap();
 }
@@ -121,19 +154,37 @@ function DrawMap() {
 	var Y = Map[0].length;
 
 	var Output = "";
-	for (var x = 0; x < X; x++) {
-		for (var y = 0; y < Y; y++) {
+	var x = 0,
+		y = 0;
+	while(x < X){
+		while(y < Y){
 			var _x = ((x * 32) + (y * -32) + OffsetX);
 			var _y = ((x * 16) + (y * 16) + OffsetY);
-			//_y+getRandomRange(0, TILEOFFSET.length) * 5; //Altura deve ficar aqui
-			//console.log(_y);
-			//A altura é de 5 por 5
+
 			if (Map[x][y])
 				Output += '<img id="tile' + x + '-' + y + '" class="square" style="top: ' + _y + 'px; left: ' + _x + 'px;" src="./images/on.png" alt="Click To Remove" />';
 			else
 				Output += '<img id="tile' + x + '-' + y + '" class="square" style="top: ' + _y + 'px; left: ' + _x + 'px;" src="./images/off.png" alt="Click To Add" />';
+
+			y++;
 		}
+		y = 0;
+		x++;
 	}
+
+	// for (var x = 0; x < X; x++) {
+	// 	for (var y = 0; y < Y; y++) {
+	// 		var _x = ((x * 32) + (y * -32) + OffsetX);
+	// 		var _y = ((x * 16) + (y * 16) + OffsetY);
+	// 		//_y+getRandomRange(0, TILEOFFSET.length) * 5; //Altura deve ficar aqui
+	// 		//console.log(x, y);
+	// 		//A altura é de 5 por 5
+	// 		if (Map[x][y])
+	// 			Output += '<img id="tile' + x + '-' + y + '" class="square" style="top: ' + _y + 'px; left: ' + _x + 'px;" src="./images/on.png" alt="Click To Remove" />';
+	// 		else
+	// 			Output += '<img id="tile' + x + '-' + y + '" class="square" style="top: ' + _y + 'px; left: ' + _x + 'px;" src="./images/off.png" alt="Click To Add" />';
+	// 	}
+	// }
 
 	var Preview = document.getElementById('preview');
 	Preview.style.width = ((X * 32) + (Y * +32) + 50) + 'px';
@@ -151,14 +202,29 @@ function RedrawMap() {
 	var X = Map.length;
 	var Y = Map[0].length;
 
-	for (var x = 0; x < X; x++) {
-		for (var y = 0; y < Y; y++) {
+	var x = 0,
+		y = 0;
+	while(x < X){
+		while(y < Y){
 			if (Map[x][y])
 				document.getElementById('tile' + x + '-' + y).src = './images/on.png';
 			else
 				document.getElementById('tile' + x + '-' + y).src = './images/off.png';
+
+			y++;
 		}
+		y = 0;
+		x++;
 	}
+
+	// for (var x = 0; x < X; x++) {
+	// 	for (var y = 0; y < Y; y++) {
+	// 		if (Map[x][y])
+	// 			document.getElementById('tile' + x + '-' + y).src = './images/on.png';
+	// 		else
+	// 			document.getElementById('tile' + x + '-' + y).src = './images/off.png';
+	// 	}
+	// }
 
 	RefreshExport();
 }
@@ -246,7 +312,7 @@ function RefreshExport() {
 			if (Map[x][y])
 				Export += '0';
 			else
-				Export += 'X';
+				Export += 'x';
 		}
 		Export += '\n';
 	}

@@ -5,6 +5,11 @@ const drawMode = {
 	DOWN: 3
 }
 
+const drawTools = {
+	NONE: 0,
+	RECTANGLE: 1
+}
+
 const TILEOFFSET = [
 	0,
 	1,
@@ -37,3 +42,10 @@ const TILEOFFSET = [
 	"s",
 	"t"
 ]
+
+var controls = {
+	mode: drawMode.CREATE,
+	tileHeight: 0,
+	tool: drawTools.NONE,
+	maxRoomSize: 32,
+};

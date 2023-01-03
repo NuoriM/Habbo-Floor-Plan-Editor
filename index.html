@@ -4,8 +4,8 @@
 
 <head>
 	<title>Cecer's Heightmap Editor</title>
-	<script src="./js/editor_utils.js"></script>
 	<script src="./js/editor_settings.js"></script>
+	<script src="./js/editor_utils.js"></script>
 	<script src="./js/editor_bundler.js"></script>
 	
 	<link rel="stylesheet" href="./css/styles.css">
@@ -14,7 +14,6 @@
 <body style="background-color: #000; color: #FFF; font-family: Verdana; font-size: 8pt;"
 	onload="PrepareBlankMap(5, 5);">
 	<div class="app">
-		<!-- style="position: absolute; top: 20px; left: 200px; background-color: #000;" -->
 		<div id="controls" class="app-controls-sidebar">
 			<div class="app-sidebar-wrapper">
 				<div class="app-sidebar-row">
@@ -66,11 +65,14 @@
 			<div class="app-preview">
 				<div class="app-preview-body">
 					<div class="app-preview-actions-wrapper">
-						<button class="btn" onclick="window.controls.mode=drawMode.CREATE; console.log(controls)">
+						<button class="btn" onclick="window.controls.mode=drawMode.CREATE;">
 							<!-- drawMode.CREATE -->
 							<img src="./images/create.png" alt="create tile" />
 						</button>
-						<button class="btn" onclick="window.controls.mode=drawMode.REMOVE; console.log(controls)">
+						<button class="btn" onclick="window.controls.tool=drawTools.RECTANGLE;">
+							<img src="./images/rectangle.png" alt="rectangle" />
+						</button>
+						<button class="btn" onclick="window.controls.mode=drawMode.REMOVE;">
 							<img src="./images/delete.png" alt="delete tile" />
 						</button>
 						<button class="btn">
@@ -79,12 +81,18 @@
 						<button class="btn">
 							<img src="./images/down.png" alt="tile down" />
 						</button>
+						<button class="btn" onclick="Utils.resetTools()">
+							<img src="./images/reset-tools.png" alt="tile down" />
+						</button>
 					</div>
 					<div class="scroller scroller-base">
-						<div id="preview"></div>
-						<img id="mapimg" style="position: absolute;" src="./images/off.png"
-							alt="" usemap="#map" />
-						<map name="map"></map>
+						<!-- zoom: 0.5; -->
+						<div class="app-preview-offset"> 
+							<div id="preview"></div>
+							<img id="mapimg" style="position: absolute;" src="./images/off.png"
+								alt="" usemap="#map" />
+							<map class="map" name="map"></map>
+						</div>
 					</div>
 				</div>
 			</div>

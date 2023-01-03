@@ -69,7 +69,7 @@ a {
 
 .square {
     position: absolute;
-    filter: hue-rotate(84deg) saturate(4.5);
+    -webkit-filter: sepia(100%) saturate(2000%) hue-rotate(159deg);
     -webkit-user-drag: none;
 }
 
@@ -88,6 +88,15 @@ a {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
+}
+
+.app-preview-offset {
+    position: absolute;
+    top: 100px;
+}
+
+.map, #preview, #mapimg {
+    -webkit-user-drag: none;
 }
 
 .app-preview-actions-wrapper {
