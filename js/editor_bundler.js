@@ -1,25 +1,15 @@
-var Map;
+var X;
+var Y;
 var OffsetX;
 var OffsetY;
 
 var Mouse = false;
 var isMouseDown = false;
 var MouseMode;
-var MousedMap;
 
-//Disable Right Click
+var Tiles = [];
+
 document.addEventListener('contextmenu', event => event.preventDefault());
-document.addEventListener('keydown', (event) => {
-	if(event.shiftKey && controls.mode == drawMode.CREATE){
-		controls.mode = drawMode.REMOVE;
-	}
-});
-
-document.addEventListener('keyup', (event) => {
-	if(!event.shiftKey && controls.mode == drawMode.REMOVE){
-		controls.mode = drawMode.CREATE;
-	}
-});
 
 document.addEventListener('mousedown', (event) => {
 	if (event.button == 0) {
@@ -33,170 +23,162 @@ function openImportPopup() {
 	popup.classList.toggle("d-none");
 }
 
-function AddTileArea(C, X, Y) {
-	var E = document.createElement("area");
-	E.shape = "poly";
-	E.coords = C;
-	document.getElementsByTagName("map")[0].appendChild(E);
-	E.onmouseover = function () {
-		if (isMouseDown) {
-			if(controls.tool == drawTools.NONE){
-				TileClick(X, Y);
+function Tile(x, y, offsetX, offsetY, level) {
+
+	var that = this;
+
+	that.x = x;
+	that.y = y;
+	that.offsetX = offsetX;
+	that.offsetY = offsetY;
+	that.draw = true;
+	that.level = getLevel(level);
+
+	that._x = ((x * 32) + (y * -32) + offsetX);
+	that._y = ((x * 16) + (y * 16) + offsetY) + that.level;
+
+	that.coords = "";
+
+	that.coords += (that._x + 31); // TopX
+	that.coords += ",";
+	that.coords += (that._y); // TopY
+	that.coords += ",";
+
+	that.coords += (that._x + 63); // RightX
+	that.coords += ",";
+	that.coords += (that._y + 16); // RightY
+	that.coords += ",";
+
+	that.coords += (that._x + 32); // BottomX
+	that.coords += ",";
+	that.coords += (that._y + 31); // BottomY
+	that.coords += ",";
+	that.coords += (that._x + 31); // BottomX
+	that.coords += ",";
+	that.coords += (that._y + 31); // BottomY
+	that.coords += ",";
+
+	that.coords += (that._x + 0); // LeftX
+	that.coords += ",";
+	that.coords += (that._y + 16); // LeftY		
+
+	that.addTile = function() {
+		var E = document.createElement("area");
+		E.shape = "poly";
+		E.coords = that.coords;
+	
+		document.getElementsByTagName("map")[0].appendChild(E);
+		
+		E.onmouseover = function () {
+			if (isMouseDown) {
+				if(controls.tool == drawTools.NONE){
+					TileClick(that);
+				}
 			}
+			TileOver(that);
+		};
+	
+		E.onmouseout = function () {
+			TileOut(that);
+		};
+	
+		E.onclick = function () {
+			if(controls.tool == drawTools.NONE){
+				TileClick(that);
+			}
+		};
+	
+		E.onmousedown = function () { 
+			if(controls.tool == drawTools.NONE){
+				TileClick(that);
+			}
+		};
+	}
+
+	function getLevel(level) {
+
+		const levels = {
+			"x": 0,
+			"a": 10,
+			"b": 11,
+			"c": 12,
+			"d": 13,
+			"e": 14,
+			"f": 15,
+			"g": 16,
+			"h": 17,
+			"i": 18,
+			"j": 19,
+			"k": 20,
+			"l": 21,
+			"m": 22,
+			"n": 23,
+			"o": 24,
+			"p": 25,
+			"q": 26,
+			"r": 27,
+			"s": 28,
+			"t": 29
 		}
-		TileOver(X, Y);
-	};
-	E.onmouseout = function () { TileOut(X, Y); };
-	E.onclick = function () {
-		if(controls.tool == drawTools.NONE){
-			TileClick(X, Y);
+
+		if(!isNaN(parseInt(level))) {
+			return ( (level * 40) *-1);
+		} else {
+			return ((levels[level] * 40) * -1);
 		}
-	};
-	E.onmousedown = function () { 
-		if(controls.tool == drawTools.NONE){
-			TileClick(X, Y);
-		}
-	};
+	}
 }
 
-function PrepareBlankMap(X, Y) {
-	if (!isInt(X) || !isInt(Y)) {
+function PrepareBlankMap(xX, yY) {
+	if (!isInt(xX) || !isInt(yY)) {
 		alert("Invalid Size");
 		return;
-	}else if(isInt(X) && isInt(Y)){
-		if(X > controls.maxRoomSize ||
-			Y > controls.maxRoomSize){
+	}else if(isInt(xX) && isInt(yY)){
+		if(xX > controls.maxRoomSize ||
+			yY > controls.maxRoomSize){
 				alert("Room Exceeds the Max Size (32x32)");
 				return;
 		}
 	}
-	Map = new Array();
-	MousedMap = new Array();
+	
 	Mouse = false;
-	OffsetX = ((Y * 32) - 7);
+	X = xX;
+	Y = yY;
+	OffsetX = ((yY * 32) - 7);
 	OffsetY = 25;
 
 	document.getElementsByTagName("map")[0].innerHTML = "";
-	Map = new Array(parseInt(X), parseInt(Y)).dim();
-	var x = 0,
-		y = 0;
-	while(x < X) {
-		MousedMap[x] = new Array();
 
-		while(y < Y){
-			var _x = ((x * 32) + (y * -32) + OffsetX);
-			var _y = ((x * 16) + (y * 16) + OffsetY);
-
-			var Coords = "";
-			Coords += (_x + 31); // TopX
-			Coords += ",";
-			Coords += (_y); // TopY
-			Coords += ",";
-
-			Coords += (_x + 63); // RightX
-			Coords += ",";
-			Coords += (_y + 16); // RightY
-			Coords += ",";
-
-			Coords += (_x + 32); // BottomX
-			Coords += ",";
-			Coords += (_y + 31); // BottomY
-			Coords += ",";
-			Coords += (_x + 31); // BottomX
-			Coords += ",";
-			Coords += (_y + 31); // BottomY
-			Coords += ",";
-
-			Coords += (_x + 0); // LeftX
-			Coords += ",";
-			Coords += (_y + 16); // LeftY
-
-			AddTileArea(Coords, x, y); //Altura deve ficar aqui
-
+	var x = 0, y = 0;
+	while(x < xX) {
+		while(y < yY){
+			
+			var tile = new Tile(x, y, OffsetX, OffsetY, "0");
+			
+			Tiles.push(tile);
+			tile.addTile();
 			y++;
 		}
 		y = 0;
 		x++;
 	}
 
-	// for (var x = 0; x < X; x++) {
-	// 	//Map[x] = new Array();
-	// 	MousedMap[x] = new Array();
-	// 	for (var y = 0; y < Y; y++) {
-	// 		//Map[x][y] = true;
-	// 		// var tileOffset = getRandomRange(0, TILEOFFSET.length);
-	// 		// console.log(tileOffset);
-	// 		var _x = ((x * 32) + (y * -32) + OffsetX);
-	// 		var _y = ((x * 16) + (y * 16) + OffsetY);
+	console.log(Tiles);
 
-	// 		var Coords = "";
-	// 		Coords += (_x + 31); // TopX
-	// 		Coords += ",";
-	// 		Coords += (_y); // TopY
-	// 		Coords += ",";
-
-	// 		Coords += (_x + 63); // RightX
-	// 		Coords += ",";
-	// 		Coords += (_y + 16); // RightY
-	// 		Coords += ",";
-
-	// 		Coords += (_x + 32); // BottomX
-	// 		Coords += ",";
-	// 		Coords += (_y + 31); // BottomY
-	// 		Coords += ",";
-	// 		Coords += (_x + 31); // BottomX
-	// 		Coords += ",";
-	// 		Coords += (_y + 31); // BottomY
-	// 		Coords += ",";
-
-	// 		Coords += (_x + 0); // LeftX
-	// 		Coords += ",";
-	// 		Coords += (_y + 16); // LeftY
-
-	// 		AddTileArea(Coords, x, y); //Altura deve ficar aqui
-	// 	}
-	// }
 	DrawMap();
-	ResetMousedMap();
 }
 
 function DrawMap() {
-	var X = Map.length;
-	var Y = Map[0].length;
-
 	var Output = "";
-	var x = 0,
-		y = 0;
-	while(x < X){
-		while(y < Y){
-			var _x = ((x * 32) + (y * -32) + OffsetX);
-			var _y = ((x * 16) + (y * 16) + OffsetY);
 
-			if (Map[x][y])
-				Output += '<img id="tile' + x + '-' + y + '" class="square" style="top: ' + _y + 'px; left: ' + _x + 'px;" src="./images/on.png" alt="Click To Remove" />';
-			else
-				Output += '<img id="tile' + x + '-' + y + '" class="square" style="top: ' + _y + 'px; left: ' + _x + 'px;" src="./images/off.png" alt="Click To Add" />';
-
-			y++;
+	for (const tile of Tiles) {
+		if(tile.draw) {
+			Output += '<img id="tile' + tile.x + '-' + tile.y + '" class="square" style="top: ' + tile._y + 'px; left: ' + tile._x + 'px;" src="./images/on.png" alt="Click To Remove" />';
+		} else {
+			Output += '<img id="tile' + tile.x + '-' + tile.y + '" class="square" style="top: ' + tile._y + 'px; left: ' + tile._x + 'px;" src="./images/off.png" alt="Click To Add" />';
 		}
-		y = 0;
-		x++;
 	}
-
-	// for (var x = 0; x < X; x++) {
-	// 	for (var y = 0; y < Y; y++) {
-	// 		var _x = ((x * 32) + (y * -32) + OffsetX);
-	// 		var _y = ((x * 16) + (y * 16) + OffsetY);
-	// 		//_y+getRandomRange(0, TILEOFFSET.length) * 5; //Altura deve ficar aqui
-	// 		//console.log(x, y);
-	// 		//A altura é de 5 por 5
-	// 		if (Map[x][y])
-	// 			Output += '<img id="tile' + x + '-' + y + '" class="square" style="top: ' + _y + 'px; left: ' + _x + 'px;" src="./images/on.png" alt="Click To Remove" />';
-	// 		else
-	// 			Output += '<img id="tile' + x + '-' + y + '" class="square" style="top: ' + _y + 'px; left: ' + _x + 'px;" src="./images/off.png" alt="Click To Add" />';
-	// 	}
-	// }
-
+	
 	var Preview = document.getElementById('preview');
 	Preview.style.width = ((X * 32) + (Y * +32) + 50) + 'px';
 	Preview.style.height = ((X * 16) + (Y * +16) + 50 + 8) + 'px';
@@ -209,136 +191,78 @@ function DrawMap() {
 	RefreshExport();
 }
 
-function RedrawMap() {
-	var X = Map.length;
-	var Y = Map[0].length;
-
-	var x = 0,
-		y = 0;
-	while(x < X){
-		while(y < Y){
-			if (Map[x][y])
-				document.getElementById('tile' + x + '-' + y).src = './images/on.png';
-			else
-				document.getElementById('tile' + x + '-' + y).src = './images/off.png';
-
-			y++;
-		}
-		y = 0;
-		x++;
-	}
-
-	// for (var x = 0; x < X; x++) {
-	// 	for (var y = 0; y < Y; y++) {
-	// 		if (Map[x][y])
-	// 			document.getElementById('tile' + x + '-' + y).src = './images/on.png';
-	// 		else
-	// 			document.getElementById('tile' + x + '-' + y).src = './images/off.png';
-	// 	}
-	// }
-
-	RefreshExport();
-}
-
-function TileOver(X, Y) {
+function TileOver(tile) {
 	if (!Mouse) {
 		if(controls.mode == drawMode.CREATE){
-			document.getElementById('tile' + X + '-' + Y).src = './images/add.png';
+			document.getElementById('tile' + tile.x + '-' + tile.y).src = './images/add.png';
 		}else {
-			document.getElementById('tile' + X + '-' + Y).src = './images/del.png';
-		}
-		// if (Map[X][Y]) {
-		// 	document.getElementById('tile' + X + '-' + Y).src = './images/del.png';
-		// }
-		// else {
-		// 	document.getElementById('tile' + X + '-' + Y).src = './images/add.png';
-		// }
-	}
-	else {
-		if (!MousedMap[X][Y] && Map[X][Y] == MouseMode) {
-			MousedMap[X][Y] = true;
-			Map[X][Y] = !MouseMode;
-			RedrawMap();
+			document.getElementById('tile' + tile.x + '-' + tile.y).src = './images/del.png';
 		}
 	}
 }
-function TileOut(X, Y) {
+function TileOut(tile) {
 	if (!Mouse) {
-		if (Map[X][Y]) {
-			document.getElementById('tile' + X + '-' + Y).src = './images/on.png';
-		}
-		else {
-			document.getElementById('tile' + X + '-' + Y).src = './images/off.png';
+		if (tile.draw) {
+			document.getElementById('tile' + tile.x + '-' + tile.y).src = './images/on.png';
+		} else {
+			document.getElementById('tile' + tile.x + '-' + tile.y).src = './images/off.png';
 		}
 	}
 }
-function TileClick(X, Y) {
-	// Mouse = true;
+function TileClick(tile) {
+	console.log(Tiles);
+
 	if (!Mouse) {
 		if(controls.mode == drawMode.CREATE) {
 			MouseMode = true;
-			Map[X][Y] = true;
+			tile.draw = true;
 		} else if(controls.mode == drawMode.REMOVE) {
 			MouseMode = false;
-			Map[X][Y] = false;
+			tile.draw = false;
 		}
-		// MouseMode = Map[X][Y];
-		// Map[X][Y] = !Map[X][Y];
-		RedrawMap();
+
+		if(!tile.draw) {
+			document.getElementById('tile'+tile.x+'-'+tile.y).src = './images/off.png';
+		}
+
+		RefreshExport();
 	} else {
 		Mouse = false;
-		ResetMousedMap();
 	}
+}
 
-	// if(document.getElementById('toggle').checked)
-	// {
-	// 	if(!Mouse)
-	// 	{
-	// 		Mouse = true;
-	// 		MouseMode = Map[X][Y];
-	// 		Map[X][Y] = !Map[X][Y];
-	// 		RedrawMap();
-	// 	}
-	// 	else
-	// 	{
-	// 		Mouse = false;
-	// 		ResetMousedMap();
-	// 	}
-	// }
-	// else
-	// {
-	// 	Map[X][Y] = !Map[X][Y];
-	// 	RedrawMap();
-	// }
+function correctToExportTiles() {
+	return Tiles.sort((a, b) => (a.y == b.y) ? a.x - b.x : a.y - b.y );
+}
+
+function correctToParseMap(lines) {
+	var corrected = new Array();
+	for (var Y = 0; Y < lines[0].length; Y++) {
+		corrected[Y] = new Array();
+	}
+	for (var X = 0; X < lines.length; X++) {
+		for (var Y = 0; Y < lines[X].length; Y++) {
+			corrected[Y] += lines[X][Y];
+		}
+	}
+	return corrected;
 }
 
 function RefreshExport() {
-	var X = Map.length;
-	var Y = Map[0].length;
-
 	var Export = "";
 
-	for (var y = 0; y < Y; y++) {
-		for (var x = 0; x < X; x++) {
-			if (Map[x][y])
-				Export += '0';
-			else
-				Export += 'x';
+	for (const tile of correctToExportTiles()) {
+		if(tile.draw) {
+			Export += '0';
+		} else {
+			Export += 'x';
 		}
-		Export += '\n';
+		if(tile.x >= X-1) {
+			Export += '\n';
+		}
 	}
 
 	document.getElementById('export').value = Export;
-}
-
-function ResetMousedMap() {
-	var X = Map.length;
-	var Y = Map[0].length;
-	for (var x = 0; x < X; x++) {
-		for (var y = 0; y < Y; y++) {
-			MousedMap[x][y] = false;
-		}
-	}
 }
 
 function isInt(x) {
@@ -349,97 +273,55 @@ function isInt(x) {
 
 function ParseMap() {
 	var MapData = document.getElementById('import').value;
-	var NewMap = new Array();
-
-	var Lines = MapData.split('\n');
+	
+	var lines = MapData.split('\n');
 
 	Mouse = false;
-	OffsetX = ((Lines[0].length * 32) - 7);
+	OffsetX = ((lines[0].length * 32) - 7);
 	OffsetY = 25;
 	document.getElementsByTagName("map")[0].innerHTML = "";
 
-	var Rotation = new Array();
-	for (var Y = 0; Y < Lines[0].length; Y++) {
-		Rotation[Y] = new Array();
-	}
-	for (var X = 0; X < Lines.length; X++) {
-		for (var Y = 0; Y < Lines[X].length; Y++) {
-			Rotation[Y] += Lines[X][Y];
-		}
-	}
+	var corrected = correctToParseMap(lines);
 
-
+	Tiles = [];
 	var Output = "";
-	MousedMap = new Array();
-	for (var X = 0; X < Rotation.length; X++) {
-		if (Rotation[X].length == 0)
+	for (var X = 0; X < corrected.length; X++) {
+		if (corrected[X].length == 0)
 			break;
-		if (Rotation[X][0] == '\r')
+		if (corrected[X][0] == '\r')
 			break;
-		if (Rotation[X].length != Rotation[0].length) {
+		if (corrected[X].length != corrected[0].length) {
 			alert("Invalid Map! ALL LINES MUST BE THE SAME LENGTH!");
 			return;
 		}
 
-		NewMap[X] = new Array();
-		MousedMap[X] = new Array();
-		for (var Y = 0; Y < Rotation[X].length; Y++) {
-			var _x = ((X * 32) + (Y * -32) + OffsetX);
-			var _y = ((X * 16) + (Y * 16) + OffsetY);
-
-			if (Rotation[X][Y] == 'X' || Rotation[X][Y] == 'x') {
-				NewMap[X][Y] = false;
-				Output += '<img id="tile' + X + '-' + Y + '" class="square" style="top: ' + _y + 'px; left: ' + _x + 'px;" src="./images/off.png" alt="Click To Add" />';
+		for (var Y = 0; Y < corrected[X].length; Y++) {
+			var tile = new Tile(X, Y, OffsetX, OffsetY, corrected[X][Y]);
+			
+			if (corrected[X][Y] == 'X' || corrected[X][Y] == 'x') {
+				Output += '<img id="tile' + tile.x + '-' + tile.y + '" class="square" style="top: ' + tile._y + 'px; left: ' + tile._x + 'px;" src="./images/off.png" alt="Click To Add" />';
+				tile.draw = false;
 			}
-			else if (Rotation[X][Y] == '0') {
-				NewMap[X][Y] = true;
-				Output += '<img id="tile' + X + '-' + Y + '" class="square" style="top: ' + _y + 'px; left: ' + _x + 'px;" src="./images/on.png" alt="Click To Remove" />';
-			}
-			else if (Rotation[X][Y] == '\r') { }
-			else {
-				alert("Invalid Map! (" + X + "," + Y + " : " + Rotation[X][Y] + ")\n\nNote: Currently this tool doesn't allow stairs.");
-				return;
+			else if (corrected[X][Y] == '0') {
+				Output += '<img id="tile' + tile.x + '-' + tile.y + '" class="square" style="top: ' + tile._y + 'px; left: ' + tile._x + 'px;" src="./images/on.png" alt="Click To Remove" />';
+				tile.draw = true;
 			}
 
-			var Coords = "";
-			Coords += (_x + 31); // TopX
-			Coords += ",";
-			Coords += (_y); // TopY
-			Coords += ",";
+			Tiles.push(tile);
 
-			Coords += (_x + 63); // RightX
-			Coords += ",";
-			Coords += (_y + 16); // RightY
-			Coords += ",";
-
-			Coords += (_x + 32); // BottomX
-			Coords += ",";
-			Coords += (_y + 31); // BottomY
-			Coords += ",";
-			Coords += (_x + 31); // BottomX
-			Coords += ",";
-			Coords += (_y + 31); // BottomY
-			Coords += ",";
-
-			Coords += (_x + 0); // LeftX
-			Coords += ",";
-			Coords += (_y + 16); // LeftY
-
-			AddTileArea(Coords, X, Y);
+			tile.addTile();
 		}
 	}
 
 	var Preview = document.getElementById('preview');
-	// Preview.style.width = ((Rotation.length*32)+(Rotation[0].length*+32)+50) + 'px';
-	// Preview.style.height = ((Rotation.length*16)+(Rotation[0].length*+16)+50+8) + 'px';
+	//Preview.style.width = ((corrected.length*32)+(corrected[0].length*+32)+50) + 'px';
+	//Preview.style.height = ((corrected.length*16)+(corrected[0].length*+16)+50+8) + 'px';
 	Preview.innerHTML = Output;
 
 	var MapImg = document.getElementById('mapimg');
-	MapImg.style.width = ((Rotation.length * 32) + (Rotation[0].length * +32) + 50) + 'px';
-	MapImg.style.height = ((Rotation.length * 16) + (Rotation[0].length * +16) + 50 + 8) + 'px';
+	MapImg.style.width = ((corrected.length * 32) + (corrected[0].length * +32) + 50) + 'px';
+	MapImg.style.height = ((corrected.length * 16) + (corrected[0].length * +16) + 50 + 8) + 'px';
 
-	Map = NewMap;
-	ResetMousedMap();
 	RefreshExport();
 	document.getElementById('controls').style.width = 180 + 'px';
 }

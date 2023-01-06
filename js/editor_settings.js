@@ -47,5 +47,5 @@ var controls = {
 	mode: drawMode.CREATE,
 	tileHeight: 0,
 	tool: drawTools.NONE,
-	maxRoomSize: 32,
+	maxRoomSize: 70,
 };
