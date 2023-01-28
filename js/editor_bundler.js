@@ -2,14 +2,29 @@ var X;
 var Y;
 var OffsetX;
 var OffsetY;
-
 var Mouse = false;
 var isMouseDown = false;
 var MouseMode;
-
 var Tiles = [];
 
 document.addEventListener('contextmenu', event => event.preventDefault());
+
+document.addEventListener("DOMContentLoaded", function() {
+	drawPalette();
+	updatePalette();
+});
+
+document.addEventListener('keydown', (event) => {
+	if(event.shiftKey && controls.mode == drawMode.CREATE){
+		controls.mode = drawMode.REMOVE;
+	}
+});
+
+document.addEventListener('keyup', (event) => {
+	if(!event.shiftKey && controls.mode == drawMode.REMOVE){
+		controls.mode = drawMode.CREATE;
+	}
+});
 
 document.addEventListener('mousedown', (event) => {
 	if (event.button == 0) {
@@ -18,13 +33,12 @@ document.addEventListener('mousedown', (event) => {
 });
 document.addEventListener('mouseup', () => isMouseDown = false);
 
-function openImportPopup() {
-	var popup = document.querySelector("#app-load-popup");
+function toggleImportPopup() {
+	var popup = document.querySelector("#app-import-popup");
 	popup.classList.toggle("d-none");
 }
 
-function Tile(x, y, offsetX, offsetY, level) {
-
+function Tile(x, y, offsetX, offsetY, level, height=0, color = '0065FF') {
 	var that = this;
 
 	that.x = x;
@@ -32,7 +46,9 @@ function Tile(x, y, offsetX, offsetY, level) {
 	that.offsetX = offsetX;
 	that.offsetY = offsetY;
 	that.draw = true;
-	that.level = getLevel(level);
+	that.level = 0;//getLevel(level);
+	that.height = height;
+	that.color = color;
 
 	that._x = ((x * 32) + (y * -32) + offsetX);
 	that._y = ((x * 16) + (y * 16) + offsetY) + that.level;
@@ -71,9 +87,7 @@ function Tile(x, y, offsetX, offsetY, level) {
 		
 		E.onmouseover = function () {
 			if (isMouseDown) {
-				if(controls.tool == drawTools.NONE){
-					TileClick(that);
-				}
+				TileClick(that);
 			}
 			TileOver(that);
 		};
@@ -83,15 +97,11 @@ function Tile(x, y, offsetX, offsetY, level) {
 		};
 	
 		E.onclick = function () {
-			if(controls.tool == drawTools.NONE){
-				TileClick(that);
-			}
+			TileClick(that);
 		};
 	
 		E.onmousedown = function () { 
-			if(controls.tool == drawTools.NONE){
-				TileClick(that);
-			}
+			TileClick(that);
 		};
 	}
 
@@ -130,13 +140,14 @@ function Tile(x, y, offsetX, offsetY, level) {
 }
 
 function PrepareBlankMap(xX, yY) {
+	Tiles = [];
 	if (!isInt(xX) || !isInt(yY)) {
 		alert("Invalid Size");
 		return;
 	}else if(isInt(xX) && isInt(yY)){
 		if(xX > controls.maxRoomSize ||
 			yY > controls.maxRoomSize){
-				alert("Room Exceeds the Max Size (32x32)");
+				alert("Room Exceeds the Max Size (70x70)");
 				return;
 		}
 	}
@@ -163,68 +174,95 @@ function PrepareBlankMap(xX, yY) {
 		x++;
 	}
 
-	console.log(Tiles);
-
+	controls.lastLoadedRoom = Tiles;
 	DrawMap();
 }
 
 function DrawMap() {
 	var Output = "";
+	var preview = document.getElementById('preview');
+	var mapImg = document.getElementById('mapimg');
 
 	for (const tile of Tiles) {
 		if(tile.draw) {
-			Output += '<img id="tile' + tile.x + '-' + tile.y + '" class="square" style="top: ' + tile._y + 'px; left: ' + tile._x + 'px;" src="./images/on.png" alt="Click To Remove" />';
+			Output += `<img id="tile` + tile.x + `-` + tile.y + `" class="square"
+			style="top: ` + tile._y + `px; left: ` + tile._x + `px; `+Utils.hexToHueRotation("#"+tile.color)+`"
+			src="./images/on.png" />
+			
+			<img id="tile` + tile.x + `-` + tile.y + `-outline" class="square"
+			style="top: ` + tile._y + `px; left: ` + tile._x + `px;"
+			src="./images/tile-outline.png" />
+
+			`;
 		} else {
-			Output += '<img id="tile' + tile.x + '-' + tile.y + '" class="square" style="top: ' + tile._y + 'px; left: ' + tile._x + 'px;" src="./images/off.png" alt="Click To Add" />';
+			Output += '<img id="tile' + tile.x + '-' + tile.y + '" class="square" style="top: ' + tile._y + 'px; left: ' + tile._x + 'px;" src="./images/off.png" />';
 		}
 	}
 	
-	var Preview = document.getElementById('preview');
-	Preview.style.width = ((X * 32) + (Y * +32) + 50) + 'px';
-	Preview.style.height = ((X * 16) + (Y * +16) + 50 + 8) + 'px';
-	Preview.innerHTML = Output;
+	preview.style.width = ((X * 32) + (Y * +32) + 50) + 'px';
+	preview.style.height = ((X * 16) + (Y * +16) + 50 + 8) + 'px';
+	preview.innerHTML = Output;
 
-	var MapImg = document.getElementById('mapimg');
-	MapImg.style.width = ((X * 32) + (Y * +32) + 50) + 'px';
-	MapImg.style.height = ((X * 16) + (Y * +16) + 50 + 8) + 'px';
+	mapImg.style.width = ((X * 32) + (Y * +32) + 50) + 'px';
+	mapImg.style.height = ((X * 16) + (Y * +16) + 50 + 8) + 'px';
 
 	RefreshExport();
 }
 
 function TileOver(tile) {
-	if (!Mouse) {
+	// if (!Mouse) {
+	// 	if(controls.mode == drawMode.CREATE){
+	// 		document.getElementById('tile' + tile.x + '-' + tile.y).src = './images/add.png';
+	// 	}else {
+	// 		document.getElementById('tile' + tile.x + '-' + tile.y).src = './images/del.png';
+	// 	}
+	// }
+	if(!Mouse) {
+		var cursorOverlay = document.querySelector("#cursorMode");
 		if(controls.mode == drawMode.CREATE){
-			document.getElementById('tile' + tile.x + '-' + tile.y).src = './images/add.png';
+			cursorOverlay.src = "./images/add.png";
+			cursorOverlay.style = "top:"+tile._y+"px;"+"left:"+tile._x+"px;";
 		}else {
-			document.getElementById('tile' + tile.x + '-' + tile.y).src = './images/del.png';
+			cursorOverlay.src = "./images/del.png";
+			cursorOverlay.style = "top:"+tile._y+"px;"+"left:"+tile._x+"px;";
 		}
 	}
 }
 function TileOut(tile) {
 	if (!Mouse) {
+		var cursorOverlay = document.querySelector("#cursorMode");
 		if (tile.draw) {
-			document.getElementById('tile' + tile.x + '-' + tile.y).src = './images/on.png';
+			var selTile = document.getElementById('tile' + tile.x + '-' + tile.y)
+			selTile.src = './images/on.png';
+			selTile.style.filter = Utils.hexToHueRotation("#"+tile.color);
+			document.getElementById('tile'+tile.x+'-'+tile.y+"-outline").src = './images/tile-outline.png';
 		} else {
 			document.getElementById('tile' + tile.x + '-' + tile.y).src = './images/off.png';
 		}
+		cursorOverlay.src = "./images/cursor-none.png";
 	}
 }
 function TileClick(tile) {
-	console.log(Tiles);
 
 	if (!Mouse) {
 		if(controls.mode == drawMode.CREATE) {
 			MouseMode = true;
 			tile.draw = true;
+			tile.height = Utils.convertInt(controls.tileHeight);
+			tile.color = paletteTileColors.find(item => item.key == controls.tileHeight).color;
+			var theTile = document.getElementById('tile'+tile.x+'-'+tile.y);
+			theTile.style.filter = Utils.hexToHueRotation("#"+tile.color).replace('filter: ','').replace(";", "");
 		} else if(controls.mode == drawMode.REMOVE) {
 			MouseMode = false;
 			tile.draw = false;
+			tile.height = 'x';
 		}
-
 		if(!tile.draw) {
 			document.getElementById('tile'+tile.x+'-'+tile.y).src = './images/off.png';
+			document.getElementById('tile'+tile.x+'-'+tile.y+"-outline").src = './images/off.png';
 		}
 
+		TileOver(tile);
 		RefreshExport();
 	} else {
 		Mouse = false;
@@ -249,20 +287,22 @@ function correctToParseMap(lines) {
 }
 
 function RefreshExport() {
-	var Export = "";
+	var xport = "";
 
 	for (const tile of correctToExportTiles()) {
 		if(tile.draw) {
-			Export += '0';
+			if(paletteTileColors.filter(item => item.key == tile.height)){
+				xport += tile.height;
+			}
 		} else {
-			Export += 'x';
+			xport += 'x';
 		}
 		if(tile.x >= X-1) {
-			Export += '\n';
+			xport += '\n';
 		}
 	}
 
-	document.getElementById('export').value = Export;
+	document.getElementById('export').value = xport;
 }
 
 function isInt(x) {
@@ -272,19 +312,19 @@ function isInt(x) {
 }
 
 function ParseMap() {
-	var MapData = document.getElementById('import').value;
+	var mapData = document.getElementById('import').value;
+	var preview = document.getElementById('preview');
+	var mapImg = document.getElementById('mapimg');
+	document.getElementsByTagName("map")[0].innerHTML = "";
+	var lines = mapData.split('\n');
+	var corrected = correctToParseMap(lines);
 	
-	var lines = MapData.split('\n');
+	Tiles = [];
+	var output = "";
 
 	Mouse = false;
 	OffsetX = ((lines[0].length * 32) - 7);
-	OffsetY = 25;
-	document.getElementsByTagName("map")[0].innerHTML = "";
-
-	var corrected = correctToParseMap(lines);
-
-	Tiles = [];
-	var Output = "";
+	OffsetY = 25;	
 	for (var X = 0; X < corrected.length; X++) {
 		if (corrected[X].length == 0)
 			break;
@@ -296,32 +336,57 @@ function ParseMap() {
 		}
 
 		for (var Y = 0; Y < corrected[X].length; Y++) {
-			var tile = new Tile(X, Y, OffsetX, OffsetY, corrected[X][Y]);
-			
+			var tile = new Tile(X, Y, 
+				OffsetX, OffsetY,
+				corrected[X][Y]);
+			console.log(paletteTileColors.find(item => item.key == corrected[X][Y]).key);
 			if (corrected[X][Y] == 'X' || corrected[X][Y] == 'x') {
-				Output += '<img id="tile' + tile.x + '-' + tile.y + '" class="square" style="top: ' + tile._y + 'px; left: ' + tile._x + 'px;" src="./images/off.png" alt="Click To Add" />';
+				output += `<img id="tile${tile.x}-${tile.y}" class="square"
+					style="top: ${tile._y}px; left: ${tile._x}px;"src="./images/off.png" />
+				
+					<img id="tile${tile.x}-${tile.y}-outline" class="square"
+						style="top: ${tile._y}px; left: ${tile._x}px;"
+						src="./images/off.png" />
+				`;
 				tile.draw = false;
 			}
-			else if (corrected[X][Y] == '0') {
-				Output += '<img id="tile' + tile.x + '-' + tile.y + '" class="square" style="top: ' + tile._y + 'px; left: ' + tile._x + 'px;" src="./images/on.png" alt="Click To Remove" />';
+			else if (corrected[X][Y] == paletteTileColors.find(item => item.key == corrected[X][Y]).key) { //corrected[X][Y] == '0'
+				output += `<img id="tile${tile.x}-${tile.y}" class="square"
+					style="top: ${tile._y}px; left: ${tile._x}px; ${Utils.hexToHueRotation("#"+paletteTileColors.find(item => item.key == corrected[X][Y]).color)}"
+					src="./images/on.png" />
+					
+					<img id="tile${tile.x}-${tile.y}-outline" class="square"
+						style="top: ${tile._y}px; left: ${tile._x}px;"
+						src="./images/tile-outline.png" />
+					`;
 				tile.draw = true;
 			}
-
 			Tiles.push(tile);
-
+			controls.lastLoadedRoom = Tiles;
 			tile.addTile();
 		}
 	}
 
-	var Preview = document.getElementById('preview');
-	//Preview.style.width = ((corrected.length*32)+(corrected[0].length*+32)+50) + 'px';
-	//Preview.style.height = ((corrected.length*16)+(corrected[0].length*+16)+50+8) + 'px';
-	Preview.innerHTML = Output;
-
-	var MapImg = document.getElementById('mapimg');
-	MapImg.style.width = ((corrected.length * 32) + (corrected[0].length * +32) + 50) + 'px';
-	MapImg.style.height = ((corrected.length * 16) + (corrected[0].length * +16) + 50 + 8) + 'px';
+	preview.innerHTML = output;
+	mapImg.style.width = ((corrected.length * 32) + (corrected[0].length * +32) + 50) + 'px';
+	mapImg.style.height = ((corrected.length * 16) + (corrected[0].length * +16) + 50 + 8) + 'px';
 
 	RefreshExport();
 	document.getElementById('controls').style.width = 180 + 'px';
+}
+
+function drawPalette(){
+	const paletteField = document.querySelector("#palette");
+	let paletteHTML = "";
+	for (let i = 0; i < paletteTileColors.length; i++) {
+		const item = paletteTileColors[i];
+		paletteHTML+=`
+		<input id="radio-${item.key}" class="app-tile-palette-item" type="radio" name="palette-color"
+			style="background:#${item.color};" onclick="controls.tileHeight='${item.key}'"/>`;
+	}
+	paletteField.innerHTML = paletteHTML;
+}
+
+function updatePalette(){
+	document.getElementById(`radio-${controls.tileHeight}`).checked = true;
 }

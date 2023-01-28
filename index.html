@@ -4,6 +4,7 @@
 
 <head>
 	<title>Cecer's Heightmap Editor</title>
+	<script src="./js/hex_to_hue_rotate.js"></script>
 	<script src="./js/editor_settings.js"></script>
 	<script src="./js/editor_utils.js"></script>
 	<script src="./js/editor_bundler.js"></script>
@@ -30,19 +31,19 @@
 					<span>x</span>
 					<input type="textbox" id="CBM-Y"
 						value="5" style="width: 25px;" /> <input type="button"
-						onclick="if(confirm('WARNING: This will erase the current map! Please export it first!\n\nWARNING: Large sizes can freeze your browser while the map is being built!'))PrepareBlankMap(document.getElementById('CBM-X').value, document.getElementById('CBM-Y').value)"
+						onclick="if(confirm('WARNING: This will erase the current map! Please export it first!\n\nWARNING: Large sizes can freeze your browser while the map is being built!'))PrepareBlankMap(document.getElementById('CBM-X').value, document.getElementById('CBM-Y').value);"
 						value="Create" />
 				</div>
 				
 				<!-- <input id="toggle" type="checkbox" onchange="Mouse = false;" /> Toggle Mode -->
 				<!-- onclick="document.getElementById('controls').style.width = 696 + 'px';" -->
 				<div class="app-sidebar-row">
-					<input id="importbutton" type="button" value="Import" onclick="openImportPopup()"/>
+					<input id="importbutton" type="button" value="Import" onclick="toggleImportPopup()"/>
 				</div>
-				<div class="app-sidebar-row">
+				<div class="app-sidebar-row d-none">
 					Exported:
 				</div>
-				<div class="app-sidebar-row">
+				<div class="app-sidebar-row d-none">
 					<textarea id="export" readonly="readonly" cols="1" rows="1"
 						style="width: 170px; height: 400px; border: solid 1px #FFF; background-color: #000; color: #FFF;"></textarea>
 				</div>
@@ -51,50 +52,57 @@
 				</div>
 			</div>
 			<!-- style="position: absolute; top: 4px; left: 205px;" -->
-			<div id="app-load-popup" class="app-load-popup d-none">
-				<div class="app-load-popup-btn-wrapper">
-					<input class="btn" type="button" value="Load"
-						onclick="if(confirm('WARNING: This will erase the current map! Please export it first!\n\nWARNING: Large sizes can freeze your browser while the map is being built!')) ParseMap(); openImportPopup()" />
-					<input class="btn" type="button" value="Cancel"
-						onclick="document.getElementById('controls').style.width = 180 + 'px';" />
-				</div>
-				<div class="app-load-popup-map">
+			<div id="app-import-popup" class="app-import-popup">
+				<div class="app-import-popup-map">
+					<div class="app-import-popup-btn-wrapper">
+						<input class="btn" type="button" value="Load"
+							onclick="if(confirm('WARNING: This will erase the current map! Please export it first!\n\nWARNING: Large sizes can freeze your browser while the map is being built!')) ParseMap(); toggleImportPopup()" />
+						<input class="btn" type="button" value="Cancel"
+							onclick="toggleImportPopup()" />
+					</div>
 					<textarea id="import" cols="1" rows="1" placeholder="Place your heightmap here"></textarea>
 				</div>
 			</div>
 			<div class="app-preview">
 				<div class="app-preview-body">
 					<div class="app-preview-actions-wrapper">
-						<button class="btn" onclick="window.controls.mode=drawMode.CREATE;">
-							<!-- drawMode.CREATE -->
-							<img src="./images/create.png" alt="create tile" />
-						</button>
-						<button class="btn" onclick="window.controls.tool=drawTools.RECTANGLE;">
-							<img src="./images/rectangle.png" alt="rectangle" />
-						</button>
-						<button class="btn" onclick="window.controls.mode=drawMode.REMOVE;">
-							<img src="./images/delete.png" alt="delete tile" />
-						</button>
-						<button class="btn">
-							<img src="./images/up.png" alt="tile up" />
-						</button>
-						<button class="btn">
-							<img src="./images/down.png" alt="tile down" />
-						</button>
-						<button class="btn" onclick="Utils.resetTools()">
-							<img src="./images/reset-tools.png" alt="tile down" />
-						</button>
+						<div class="app-actions d-flex">
+							<button class="btn" onclick="window.controls.mode=drawMode.CREATE;">
+								<img src="./images/create.png" alt="create tile" />
+							</button>
+							<button class="btn" onclick="window.controls.tool=drawTools.RECTANGLE;">
+								<img src="./images/rectangle.png" alt="rectangle" />
+							</button>
+							<button class="btn" onclick="window.controls.mode=drawMode.REMOVE;">
+								<img src="./images/delete.png" alt="delete tile" />
+							</button>
+							<button class="btn">
+								<img src="./images/up.png" alt="tile up" />
+							</button>
+							<button class="btn">
+								<img src="./images/down.png" alt="tile down" />
+							</button>
+							<button class="btn" onclick="Utils.resetTools();updatePalette();">
+								<img src="./images/reset-tools.png" alt="tile down" />
+							</button>
+						</div>
+						<div class="d-flex app-palette-wrapper">
+							<span>Edite a altura</span>
+							<div id="palette"></div>
+						</div>
 					</div>
-					<div class="scroller scroller-base">
+					<div class="scroller scroller-base" style="max-width: 580px;">
 						<!-- zoom: 0.5; -->
-						<div class="app-preview-offset"> 
+						<div class="app-preview-offset">
+							<img id="cursorMode" class="cursor-editor" src="./images/cursor-none.png"/>
 							<div id="preview"></div>
-							<img id="mapimg" style="position: absolute;" src="./images/off.png"
+							<img id="mapimg" style="position: absolute;opacity: 0;"
 								alt="" usemap="#map" />
 							<map class="map" name="map"></map>
 						</div>
 					</div>
 				</div>
+				<div class="app-room-preview"></div>
 			</div>
 		</div>
 	</div>
