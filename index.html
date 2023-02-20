@@ -12,8 +12,7 @@
 	<link rel="stylesheet" href="./css/styles.css">
 </head>
 
-<body style="background-color: #000; color: #FFF; font-family: Verdana; font-size: 8pt;"
-	onload="PrepareBlankMap(5, 5);">
+<body onload="PrepareBlankMap(5, 5);">
 	<div class="app">
 		<div id="controls" class="app-controls-sidebar">
 			<div class="app-sidebar-wrapper">
@@ -52,19 +51,22 @@
 				</div>
 			</div>
 			<!-- style="position: absolute; top: 4px; left: 205px;" -->
-			<div id="app-import-popup" class="app-import-popup">
-				<div class="app-import-popup-map">
-					<div class="app-import-popup-btn-wrapper">
-						<input class="btn" type="button" value="Load"
-							onclick="if(confirm('WARNING: This will erase the current map! Please export it first!\n\nWARNING: Large sizes can freeze your browser while the map is being built!')) ParseMap(); toggleImportPopup()" />
-						<input class="btn" type="button" value="Cancel"
-							onclick="toggleImportPopup()" />
+			<div id="app-import-popup" class="app-import-popup d-none">
+				<div class="app-import-popup-body-wrapper">
+					<div class="app-import-popup-map">
+						<div class="app-import-popup-btn-wrapper">
+							<input class="btn" type="button" value="Import"
+								onclick="if(confirm('WARNING: This will erase the current map! Please export it first!\n\nWARNING: Large sizes can freeze your browser while the map is being built!')) ParseMap(); toggleImportPopup()" />
+							<input class="btn" type="button" value="Export" />
+							<input class="btn" type="button" value="Cancel"
+								onclick="toggleImportPopup()" />
+						</div>
+						<textarea id="import" cols="1" rows="1" placeholder="Place your heightmap here"></textarea>
 					</div>
-					<textarea id="import" cols="1" rows="1" placeholder="Place your heightmap here"></textarea>
 				</div>
 			</div>
 			<div class="app-preview">
-				<div class="app-preview-body">
+				<div class="app-preview-body-wrapper">
 					<div class="app-preview-actions-wrapper">
 						<div class="app-actions d-flex">
 							<button class="btn" onclick="window.controls.mode=drawMode.CREATE;">
@@ -91,18 +93,20 @@
 							<div id="palette"></div>
 						</div>
 					</div>
-					<div class="scroller scroller-base" style="max-width: 580px;">
-						<!-- zoom: 0.5; -->
-						<div class="app-preview-offset">
-							<img id="cursorMode" class="cursor-editor" src="./images/cursor-none.png"/>
-							<div id="preview"></div>
-							<img id="mapimg" style="position: absolute;opacity: 0;"
-								alt="" usemap="#map" />
-							<map class="map" name="map"></map>
+					<div class="app-preview-body">
+						<div class="scroller scroller-base">
+							<!-- transform: scale(0.3); -->
+							<div class="app-preview-offset"> 
+								<img id="cursorMode" class="cursor-editor" src="./images/cursor-none.png"/>
+								<div id="preview"></div>
+								<img id="mapimg" style="position: absolute;opacity: 0;"
+									alt="" usemap="#map" />
+								<map class="map" name="map"></map>
+							</div>
 						</div>
 					</div>
 				</div>
-				<div class="app-room-preview"></div>
+				<!-- <div class="app-room-preview"></div> -->
 			</div>
 		</div>
 	</div>

@@ -1,5 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2&display=swap');
+
+:root {
+    --app-color: #E9E9E1;
+    --app-content-color: #BCBCB4;
+    --app-editor-color: #000000;
+}
+
 body {
     user-select: none;
+    font-family: 'Baloo 2', cursive;
 }
 
 a {
@@ -41,9 +50,16 @@ a {
     flex-direction: column;
     width: 100%;
     gap: 8px;
+    justify-content: center;
     height: 100%;
     z-index: 2;
     
+}
+
+.app-import-popup-body-wrapper {
+    background: var(--app-color);
+    display: flex;
+    margin: 16px;
 }
 
 .app-import-popup-btn-wrapper {
@@ -65,11 +81,12 @@ a {
 }
 
 .app-import-popup-map #import {
+    border-radius: 4px;
     display: flex;
-    padding: 0;
+    padding: 4px;
     border: none;
-    background: #191919;
-    color: whitesmoke;
+    /* background: #191919; */
+    /* color: whitesmoke; */
     z-index: 2023;
     min-height: 300px;
 }
@@ -95,10 +112,23 @@ a {
     position: absolute;
 }
 
-.app-preview-body {
+.app-preview-body-wrapper {
+    background: var(--app-content-color);
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
+}
+
+.app-preview-body {
+    background: var(--app-editor-color);
+    display: flex;
+    position: relative;
+    -webkit-box-flex: 1;
+    -ms-flex: 1 1 auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    z-index: 0;
 }
 
 .app-preview-offset {
@@ -120,7 +150,7 @@ a {
     flex-direction: column;
     flex: 0 1 auto;
     gap: 4px;
-    padding: 0px 8px;
+    padding: 8px;
     -webkit-user-drag: none;
     user-select: none;
     z-index: 1;
@@ -148,7 +178,7 @@ a {
 
 .app-tile-palette-item {
     appearance: none;
-    width: 15px;
+    width: 100%;
     height: 20px;
     margin: 0;
     padding: 0;
@@ -171,13 +201,26 @@ a {
 }
 
 .scroller {
-    position: absolute;
+    /* position: absolute;
     width: 100%;
-    height: 100%;
+    height: 100%; */
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 
 .scroller-base {
+    /* overflow: scroll; */
+    position: relative;
+    -webkit-box-sizing: border-box;
     overflow: scroll;
+    box-sizing: border-box;
+    min-height: 0;
+    -webkit-box-flex: 1;
+    -ms-flex: 1 1 auto;
+    flex: 1 1 auto;
 }
 
 ::-webkit-scrollbar{

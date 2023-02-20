@@ -300,8 +300,10 @@ function RefreshExport() {
 		if(tile.x >= X-1) {
 			xport += '\n';
 		}
+		console.log(tile.x, X-1);
 	}
 
+	// console.log(xport);
 	document.getElementById('export').value = xport;
 }
 
@@ -336,10 +338,11 @@ function ParseMap() {
 		}
 
 		for (var Y = 0; Y < corrected[X].length; Y++) {
+			let tileColor = paletteTileColors.find(item => item.key == corrected[X][Y]);
 			var tile = new Tile(X, Y, 
 				OffsetX, OffsetY,
-				corrected[X][Y]);
-			console.log(paletteTileColors.find(item => item.key == corrected[X][Y]).key);
+				corrected[X][Y], (tileColor)? tileColor.key : 0);
+			
 			if (corrected[X][Y] == 'X' || corrected[X][Y] == 'x') {
 				output += `<img id="tile${tile.x}-${tile.y}" class="square"
 					style="top: ${tile._y}px; left: ${tile._x}px;"src="./images/off.png" />
@@ -350,9 +353,9 @@ function ParseMap() {
 				`;
 				tile.draw = false;
 			}
-			else if (corrected[X][Y] == paletteTileColors.find(item => item.key == corrected[X][Y]).key) { //corrected[X][Y] == '0'
+			else if (corrected[X][Y] == tileColor.key) { //corrected[X][Y] == '0'
 				output += `<img id="tile${tile.x}-${tile.y}" class="square"
-					style="top: ${tile._y}px; left: ${tile._x}px; ${Utils.hexToHueRotation("#"+paletteTileColors.find(item => item.key == corrected[X][Y]).color)}"
+					style="top: ${tile._y}px; left: ${tile._x}px; ${Utils.hexToHueRotation("#"+tileColor.color)}"
 					src="./images/on.png" />
 					
 					<img id="tile${tile.x}-${tile.y}-outline" class="square"
